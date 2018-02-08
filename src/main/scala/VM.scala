@@ -52,7 +52,7 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 
 	protected def previous = seq charAt prevpos
 
-	protected def pushMatchFailChoice = stack.push( ChoicePoint(flags, data, nextpos, MATCH_FAIL, starts, captures, frame, mark, pos, null) )
+	protected def pushMatchFailChoice = stack.push( ChoicePoint(flags, data, nextpos, MATCH_FAIL, starts, captures, frame, mark, pos, ret, null) )
 
 	protected def reset( subject: CharSequence, start: Int, init: List[Any] ): Unit = {
 		stack.clear
@@ -67,7 +67,7 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 		mark = -1
 		pos = null
 		context = Nil
-		ret = -1
+		ret = HALT
 	}
 
   def getdata = data
@@ -105,14 +105,14 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 
 	def pushChoice( disp: Int ): Unit = pushChoice( disp, null )
 
-	def pushChoice( disp: Int, action: VM => Unit ) = stack push ChoicePoint( flags, data, ptr, ip + disp, starts, captures, frame, mark, pos, action )
+	def pushChoice( disp: Int, action: VM => Unit ) = stack push ChoicePoint( flags, data, ptr, ip + disp, starts, captures, frame, mark, pos, ret, action )
 
-	def pushChoice( action: VM => Unit ) = stack push ChoicePoint( flags, data, ptr, VM_STATE, starts, captures, frame, mark, pos, action )
+	def pushChoice( action: VM => Unit ) = stack push ChoicePoint( flags, data, ptr, VM_STATE, starts, captures, frame, mark, pos, ret, action )
 
-	protected def pushState = stack push ChoicePoint( flags, data, ptr, VM_STATE, starts, captures, frame, mark, pos, null )
+	protected def pushState = stack push ChoicePoint( flags, data, ptr, VM_STATE, starts, captures, frame, mark, pos, ret, null )
 
 	protected def choice: Unit = {
-		val ChoicePoint( fl, dat, idx, loc, st, caps, frm, mrk, ps, action ) = stack.pop
+		val ChoicePoint( fl, dat, idx, loc, st, caps, frm, mrk, ps, rt, action ) = stack.pop
 
 		flags = fl
 		data = dat
@@ -123,6 +123,7 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 		frame = frm
 		mark = mrk
 		pos = ps
+		ret = rt
 
 		if (action ne null)
 			action( this )
@@ -307,7 +308,6 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 				pos = apos
 				context = locals
 				ret = ip
-	//								push( Return(frames, ip) )
 				ip = entry
 			case c: RecordConstructor =>
 				if (argc != c.arity)
@@ -525,6 +525,12 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 
 						ip = frame.ret
 						frame = pop.asInstanceOf[Frame]
+
+						if (frame eq null)
+							ret = HALT
+						else
+							ret = frame.ret
+
 						push( res )
 					case RepeatBeginInst( lower, upper ) => push( Repetition(lower, upper) )
 					case RepeatLoopInst( disp ) =>
@@ -575,9 +581,9 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 						stack.discard( stack.size - mark )
 						stateSameData
 					case ChangeMarkInst( disp ) =>
-						val ChoicePoint( flags, dat, ptr, _, starts, captures, frm, mrk, ps, action ) = stack( stack.size - mark + 1 )
+						val ChoicePoint( flags, dat, ptr, _, starts, captures, frm, mrk, ps, rt, action ) = stack( stack.size - mark + 1 )
 
-						stack( stack.size - mark + 1 ) = ChoicePoint( flags, dat, ptr, ip + disp, starts, captures, frm, mrk, ps, action )
+						stack( stack.size - mark + 1 ) = ChoicePoint( flags, dat, ptr, ip + disp, starts, captures, frm, mrk, ps, rt, action )
 					case ClassInst( clas ) =>
 						if (!eoi && !clas( current ))
 							fail
@@ -685,8 +691,6 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 					case FrameInst( localc ) =>
 						push( frame )
 						frame = Frame( new Array[Any](localc) :: context, ret )
-//					case PopRetInst =>
-//						ret = pop.asInstanceOf[Return].ret
 					case ConcatenateInst( parts ) =>
 						val buf = new StringBuilder
 
@@ -1117,6 +1121,7 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 																		frm: Frame,
 																		mrk: Int,
 																		ps: Position,
+																		rt: Int,
 																		actn: VM => Unit
 																	)
 
