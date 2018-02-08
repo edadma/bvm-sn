@@ -23,7 +23,7 @@ object VM {
 class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored: Boolean, val args: Any ) {
 	import VM._
 
-	protected [bvm] var seq: CharSequence = _
+	var seq: CharSequence = _
 	protected [bvm] val stack = new ArrayBufferStack[ChoicePoint]
 	protected [bvm] var flags: Int = _
 	protected [bvm] var data: List[Any] = _
@@ -34,7 +34,7 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 	protected [bvm] var frame: Frame = _
 	protected [bvm] var mark: Int = _
 	protected [bvm] var pos: Position = _
-	protected [bvm] var scanpos: Int = _
+	var scanpos: Int = _
 	protected [bvm] var globals: Array[Any] = _
 	protected [bvm] var context: List[Array[Any]] = _
 	protected [bvm] var ret: Int = _
@@ -69,6 +69,8 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 		context = Nil
 		ret = -1
 	}
+
+  def getdata = data
 
 	def isEmpty = data.isEmpty
 
