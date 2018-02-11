@@ -408,17 +408,17 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 					_decls( right )
 				case InterpolationExpressionAST( l ) => l foreach _decls
 				case NotExpressionAST( expr ) => _decls( expr )
-				case LeftSectionExpressionAST( _, expr, _, _ ) => _decls( expr )
-//				case LeftSectionExpressionAST( pos, expr, op, func ) =>
-//					_decls( FunctionExpressionAST("$" + pos.toString, pos, List(VariableStructureAST(pos, "$", "$")), false, List(FunctionPartExpressionAST(None, BinaryExpressionAST(null, expr, op, func, pos, VariableExpressionAST(null, "$", "$")))), WhereClauseAST(Nil)) )
-				case RightSectionExpressionAST( _, _, _, expr ) => _decls( expr )
+				case LeftSectionExpressionAST( _, _: LiteralExpressionAST, _, _, _, _ ) =>
+				case LeftSectionExpressionAST( _, _, lambda, _, _, _ ) => _decls( lambda )
+				case RightSectionExpressionAST( _, _, _, _: LiteralExpressionAST, _, _ ) =>
+				case RightSectionExpressionAST( _, _, _, _, lambda, _ ) => _decls( lambda )
 				case DotExpressionAST( _, expr, _, _ ) => _decls( expr )
 				case ScanExpressionAST( _, subject, expr ) =>
 					_decls( subject )
 					_decls( expr )
 				case EqExpressionAST( expr, _, _ ) => _decls( expr )
-				case ConditionalExpressionAST( cond, els ) =>
-					cond foreach {
+				case ConditionalExpressionAST( cond, els ) =>	//todo: a value of 'false' should be treated as a falure and also for 'while', etc.
+ 					cond foreach {
 						case (a, b) =>
 							_decls( a )
 							_decls( b )
@@ -1142,17 +1142,14 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 					comment( "--- comprehension body end ---" )
 				case FailExpressionAST => code += FailInst
 				case SectionExpressionAST( op, func ) => code += PushInst( SectionOperation(op, func) )
-				case LeftSectionExpressionAST( pos, LiteralExpressionAST(v), op, func ) =>
+				case LeftSectionExpressionAST( pos, LiteralExpressionAST(v), _, op, func, _ ) =>
 					code += PushInst( LeftSectionOperation(pos, v, op, func) )
-				case LeftSectionExpressionAST( pos, expr, op, func ) =>
-	//					_emit( FunctionExpressionAST("$" + pos.toString, pos, List(VariableStructureAST(pos, "$", "$")), false, List(FunctionPartExpressionAST(None, BinaryExpressionAST(null, expr, op, func, pos, VariableExpressionAST(null, "$", "$")))), WhereClauseAST(Nil)) )
-					_emit( expr )
-					code += LeftSectionInst( pos, op, func )
-				case RightSectionExpressionAST( op, func, pos, LiteralExpressionAST(v) ) =>
+				case LeftSectionExpressionAST( pos, _, lambda, op, func, _ ) =>
+					_emit( lambda )
+				case RightSectionExpressionAST( op, func, pos, LiteralExpressionAST(v), _, _ ) =>
 					code += PushInst( RightSectionOperation(op, func, pos, v) )
-				case RightSectionExpressionAST( op, func, pos, expr ) =>
-					_emit( expr )
-					code += RightSectionInst( op, func, pos )
+				case RightSectionExpressionAST( op, func, pos, _, lambda, _ ) =>
+					_emit( lambda )
 				case ReturnExpressionAST( expr ) => //todo: local variables should be dereferenced before being returned (pg. 126)
 					for (_ <- 1 to markNesting)
 						code += UnmarkInst

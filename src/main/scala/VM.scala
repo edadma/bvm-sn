@@ -880,8 +880,6 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 								push( d )
 						}
 					case BinaryInst( lpos, op, func, rpos ) => binaryOperation( lpos, op, func, rpos )
-					case LeftSectionInst( lpos, op, func ) => push( LeftSectionOperation(lpos, derefp, op, func) )//todo: rewrite sections to be normal closures
-					case RightSectionInst( op, func, rpos ) => push( RightSectionOperation(op, func, rpos, derefp) )
 					case GeneratorInst =>
 						def generate( g: GeneratorTemp ): Unit = {
 								if (g.it.hasNext) {
@@ -1295,8 +1293,6 @@ case object GeneratorInst extends VMInst
 //case object IterateInst extends VMInst
 case class RangeInst( fpos: Position, tpos: Position, bpos: Position, inclusive: Boolean ) extends VMInst
 case class UnboundedStreamInst( fpos: Position, bpos: Position ) extends VMInst
-case class LeftSectionInst( lpos: Position, op: Symbol, func: FunctionMap ) extends VMInst
-case class RightSectionInst( op: Symbol, func: FunctionMap, rpos: Position ) extends VMInst
 case class CommentInst( comment: String ) extends VMInst
 case class DotOperatorInst( epos: Position, apos: Position, field: Symbol ) extends VMInst
 case object HaltInst extends VMInst

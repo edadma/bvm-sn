@@ -67,8 +67,8 @@ case class ContinueExpressionAST( pos: Position, label: Option[String] ) extends
 case class ReturnExpressionAST( expr: ExpressionAST ) extends ExpressionAST
 case class YieldExpressionAST( expr: ExpressionAST, result: Option[ExpressionAST] ) extends ExpressionAST
 case class SectionExpressionAST( op: Symbol, func: FunctionMap ) extends ExpressionAST
-case class LeftSectionExpressionAST( pos: Position, expr: ExpressionAST, op: Symbol, func: FunctionMap ) extends ExpressionAST
-case class RightSectionExpressionAST( op: Symbol, func: FunctionMap, pos: Position, expr: ExpressionAST ) extends ExpressionAST
+case class LeftSectionExpressionAST( pos: Position, expr: ExpressionAST, lambda: FunctionExpressionAST, op: Symbol, func: FunctionMap, var closure: Option[Boolean] = None ) extends ExpressionAST
+case class RightSectionExpressionAST( op: Symbol, func: FunctionMap, pos: Position, expr: ExpressionAST, lambda: FunctionExpressionAST, var closure: Option[Boolean] = None ) extends ExpressionAST
 case class ListComprehensionExpressionAST( comprehension: ComprehensionAST ) extends ExpressionAST
 case class SetComprehensionExpressionAST( comprehension: ComprehensionAST ) extends ExpressionAST
 case class ScanExpressionAST( spos: Position, subject: ExpressionAST, expr: ExpressionAST ) extends ExpressionAST
