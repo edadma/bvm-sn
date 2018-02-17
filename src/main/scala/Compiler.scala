@@ -821,7 +821,22 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 						code(b) = BranchInst( code.length - b - 1 )
 				case pat: PatternAST => compile( pat, dir == Forward )
 				case SetValueExpressionAST( pos, name, oname, expr ) =>
+					val idx =
+						variable(name, namespaces) match {
+							case d@VarDecl( idx, _, _ ) =>
+								d.set = true
+								idx
+							case RecordDecl( _ ) => problem( pos, s"record not val: $oname" )
+							case _ => problem( pos, "*** BUG ***" )
+						}
 
+					_emit( expr )
+					code += DupInst
+
+					if (namespaces isEmpty)
+						code += SetGlobalInst( idx, false )
+					else
+						code += SetLocalInst( idx, false )
 				case AssignmentExpressionAST( lhs, op, fmap, rhs ) =>
 					val len = lhs.length
 

@@ -22,6 +22,12 @@ object Main extends App {
         ),
         false
       ),
+      SetValueExpressionAST(
+        null,
+        "a",
+        "a",
+        LiteralExpressionAST( "bye bye" )
+      ),
       ApplyExpressionAST(
         null,
         VariableExpressionAST( null, "write", "write" ),
@@ -31,6 +37,7 @@ object Main extends App {
         ),
         false
       )
+      //, AssignmentExpressionAST( List((null, VariableExpressionAST(null, "a", "a"))), '=, null, List((null, LiteralExpressionAST( "bye bye again" ))) )
     ))
   val constants =
     Map(
