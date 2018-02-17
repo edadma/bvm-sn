@@ -8,12 +8,26 @@ object Main extends App {
 
   val program =
     SourceAST( List(
+      ValAST(
+        VariableStructureAST( null, "a", "a" ),
+        null,
+        LiteralExpressionAST( "Hello world!" )
+      ),
       ApplyExpressionAST(
         null,
         VariableExpressionAST( null, "write", "write" ),
         null,
         List(
-          (null, LiteralExpressionAST( "Hello world!" ))
+          (null, VariableExpressionAST( null, "a", "a" ))
+        ),
+        false
+      ),
+      ApplyExpressionAST(
+        null,
+        VariableExpressionAST( null, "write", "write" ),
+        null,
+        List(
+          (null, VariableExpressionAST( null, "a", "a" ))
         ),
         false
       )

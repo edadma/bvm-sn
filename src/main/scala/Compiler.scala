@@ -330,6 +330,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 				case BracketExpressionAST( _, f, _, arg ) =>
 					_decls( f )
 					_decls( arg )
+				case SetValueExpressionAST( name, oname, expr ) =>
 				case AssignmentExpressionAST( lhs, _, _, rhs ) =>
 					lhs foreach { case (_, e) => _decls( e ) }
 					rhs foreach { case (_, e) => _decls( e ) }
@@ -814,6 +815,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 					for (b <- jumps)
 						code(b) = BranchInst( code.length - b - 1 )
 				case pat: PatternAST => compile( pat, dir == Forward )
+				case SetValueExpressionAST( name, oname, expr ) =>
 				case AssignmentExpressionAST( lhs, op, fmap, rhs ) =>
 					val len = lhs.length
 
