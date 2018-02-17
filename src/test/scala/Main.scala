@@ -13,6 +13,11 @@ object Main extends App {
         null,
         LiteralExpressionAST( "Hello world!" )
       ),
+      ValAST(
+        VariableStructureAST( null, "b", "b" ),
+        null,
+        LiteralExpressionAST( "bye bye" )
+      ),
       ApplyExpressionAST(
         null,
         VariableExpressionAST( null, "write", "write" ),
@@ -26,7 +31,7 @@ object Main extends App {
         null,
         "a",
         "a",
-        LiteralExpressionAST( "bye bye" )
+        VariableExpressionAST( null, "b", "b" )
       ),
       ApplyExpressionAST(
         null,

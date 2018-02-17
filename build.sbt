@@ -29,6 +29,8 @@ libraryDependencies ++= Seq(
 	"xyz.hyperreal" %% "lia" % "0.22"
 )
 
+bintrayRepository := "maven"
+
 mainClass in (Compile, run) := Some( "xyz.hyperreal." + name.value.replace('-', '_') + ".Main" )
 
 mainClass in assembly := Some( "xyz.hyperreal." + name.value.replace('-', '_') + ".Main" )

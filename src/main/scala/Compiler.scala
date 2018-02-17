@@ -327,13 +327,15 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 					_decls( f )
 					_decls( arg )
 				case v@SetValueExpressionAST( pos, name, oname, expr ) =>
+					_decls( expr )
+
 					findvariable( name, namespaces ) match {
 						case NoneVarResult => problem( pos, s"val not found: $oname" )
 						case ConstantVarResult( _ ) => problem( pos, s"constant not val: $oname" )
 						case DeclVarResult( _, _, _ ) =>
 							findscope( name, namespaces ) match {
 								case Some( s ) => v.name = s.scopenum + name
-								case None =>
+								case None => problem( pos, s"*** BUG ***: $oname" )
 							}
 					}
 				case AssignmentExpressionAST( lhs, _, _, rhs ) =>
