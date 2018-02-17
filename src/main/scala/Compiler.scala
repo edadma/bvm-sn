@@ -313,10 +313,6 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 							findscope( name, namespaces ) match {
 								case Some( s ) =>
 									v.name = s.scopenum + name
-
-//									if (name == "req")
-//										println( s"rename ${v.name}")
-
 								case None => problem( pos, "*** BUG *** not found in any scope" )
 							}
 						case ConstantVarResult( _ ) =>
@@ -330,7 +326,16 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 				case BracketExpressionAST( _, f, _, arg ) =>
 					_decls( f )
 					_decls( arg )
-				case SetValueExpressionAST( name, oname, expr ) =>
+				case v@SetValueExpressionAST( pos, name, oname, expr ) =>
+					findvariable( name, namespaces ) match {
+						case NoneVarResult => problem( pos, s"val not found: $oname" )
+						case ConstantVarResult( _ ) => problem( pos, s"constant not val: $oname" )
+						case DeclVarResult( _, _, _ ) =>
+							findscope( name, namespaces ) match {
+								case Some( s ) => v.name = s.scopenum + name
+								case None =>
+							}
+					}
 				case AssignmentExpressionAST( lhs, _, _, rhs ) =>
 					lhs foreach { case (_, e) => _decls( e ) }
 					rhs foreach { case (_, e) => _decls( e ) }
@@ -815,7 +820,8 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 					for (b <- jumps)
 						code(b) = BranchInst( code.length - b - 1 )
 				case pat: PatternAST => compile( pat, dir == Forward )
-				case SetValueExpressionAST( name, oname, expr ) =>
+				case SetValueExpressionAST( pos, name, oname, expr ) =>
+
 				case AssignmentExpressionAST( lhs, op, fmap, rhs ) =>
 					val len = lhs.length
 

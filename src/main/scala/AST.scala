@@ -23,7 +23,7 @@ case class DefAST( oname: String, func: FunctionExpressionAST ) extends Declarat
 case class DeclarationBlockAST( decls: List[DeclarationStatementAST] ) extends DeclarationStatementAST
 
 trait ExpressionAST extends StatementAST
-case class SetValueExpressionAST( var name: String, oname: String, expr: ExpressionAST ) extends ExpressionAST
+case class SetValueExpressionAST( pos: Position, var name: String, oname: String, expr: ExpressionAST ) extends ExpressionAST
 case class NativeFunctionExpressionAST( function: VM => Any ) extends ExpressionAST
 case class RegexLiteralAST( pos: Position, regex: String ) extends ExpressionAST
 case class RangeExpressionAST( fpos: Position, f: ExpressionAST, tpos: Position, t: ExpressionAST, bpos: Position, b: ExpressionAST, inclusive: Boolean ) extends ExpressionAST
