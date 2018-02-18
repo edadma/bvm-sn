@@ -13,7 +13,7 @@ object Main extends App {
         VariableExpressionAST( null, "write", "write" ),
         null,
         List(
-          (null, SysvarExpressionAST( null, "args" ))
+          (null, DotExpressionAST( null, ApplyExpressionAST( null, SysvarExpressionAST(null, "args"), null, List((null, LiteralExpressionAST(0))), false ), null, 'v ))
         ),
         false
       ),
@@ -31,8 +31,9 @@ object Main extends App {
           println( list map (a => display(deref(a))) mkString ", " )
       }
     )
-  val arg = "asdf"
 
-  run( program, constants, Map("args" -> ((vm: VM) => vm.args)), Map(), arg )
+  run( program, constants, Map("args" -> ((vm: VM) => vm.args)), Map(), new C( 123 ) )
 
 }
+
+class C( var v: Int )

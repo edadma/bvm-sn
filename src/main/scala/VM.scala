@@ -511,12 +511,18 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 							case null => problem( epos, "null value" )
 							case o =>
 								val c = o.getClass
-								val methods = c.getMethods.toList.filter( m => m.getName == field.name && (m.getModifiers&Modifier.STATIC) != Modifier.STATIC )
 
-								if (methods isEmpty)
-									problem( apos, s"object method '$field' not found: $o" )
+								try {
+									push( c.getField(field.name).get(o) )
+								} catch {
+									case e: NoSuchFieldException =>
+										val methods = c.getMethods.toList.filter( m => m.getName == field.name && (m.getModifiers&Modifier.STATIC) != Modifier.STATIC )
 
-								push( NativeMethod(o, methods) )
+										if (methods isEmpty)
+											problem( apos, s"object method '$field' not found: $o" )
+
+										push( NativeMethod(o, methods) )
+								}
 						}
 					case ReturnInst =>
 						ip = pop.asInstanceOf[Return].ret
