@@ -26,22 +26,48 @@ class LanguageSupportTests extends FreeSpec with PropertyChecks with Matchers {
  "hello world" in {
     val program =
       SourceAST( List(
+        ValAST(
+          VariableStructureAST( null, "a", "a" ),
+          null,
+          LiteralExpressionAST( "Hello world!" )
+        ),
+        ValAST(
+          VariableStructureAST( null, "b", "b" ),
+          null,
+          LiteralExpressionAST( "bye bye" )
+        ),
         ApplyExpressionAST(
           null,
           VariableExpressionAST( null, "write", "write" ),
           null,
           List(
-            (null, LiteralExpressionAST( "Hello world!" ))
+            (null, VariableExpressionAST( null, "a", "a" ))
+          ),
+          false
+        ),
+        SetValueExpressionAST(
+          null,
+          "a",
+          "a",
+          VariableExpressionAST( null, "b", "b" )
+        ),
+        ApplyExpressionAST(
+          null,
+          VariableExpressionAST( null, "write", "write" ),
+          null,
+          List(
+            (null, VariableExpressionAST( null, "a", "a" ))
           ),
           false
         )
+        //, AssignmentExpressionAST( List((null, VariableExpressionAST(null, "a", "a"))), '=, null, List((null, LiteralExpressionAST( "bye bye again" ))) )
       ))
 
-    runCapture( program, constants, Map(), Map() ) shouldBe "Hello world!"
-    //      """
-    //        |(3, 4), 3, 4
-    //        |(5, 6), 5, 6
-    //      """.stripMargin.trim
+    runCapture( program, constants, Map(), Map() ) shouldBe
+      """
+        |Hello world!
+        |bye bye
+      """.stripMargin.trim
   }
 
 }

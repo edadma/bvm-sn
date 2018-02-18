@@ -8,41 +8,15 @@ object Main extends App {
 
   val program =
     SourceAST( List(
-      ValAST(
-        VariableStructureAST( null, "a", "a" ),
-        null,
-        LiteralExpressionAST( "Hello world!" )
-      ),
-      ValAST(
-        VariableStructureAST( null, "b", "b" ),
-        null,
-        LiteralExpressionAST( "bye bye" )
-      ),
       ApplyExpressionAST(
         null,
         VariableExpressionAST( null, "write", "write" ),
         null,
         List(
-          (null, VariableExpressionAST( null, "a", "a" ))
+          (null, SysvarExpressionAST( null, "args" ))
         ),
         false
       ),
-      SetValueExpressionAST(
-        null,
-        "a",
-        "a",
-        VariableExpressionAST( null, "b", "b" )
-      ),
-      ApplyExpressionAST(
-        null,
-        VariableExpressionAST( null, "write", "write" ),
-        null,
-        List(
-          (null, VariableExpressionAST( null, "a", "a" ))
-        ),
-        false
-      )
-      //, AssignmentExpressionAST( List((null, VariableExpressionAST(null, "a", "a"))), '=, null, List((null, LiteralExpressionAST( "bye bye again" ))) )
     ))
   val constants =
     Map(
@@ -57,7 +31,8 @@ object Main extends App {
           println( list map (a => display(deref(a))) mkString ", " )
       }
     )
+  val arg = "asdf"
 
-  run( program, constants, Map(), Map() )
+  run( program, constants, Map("args" -> ((vm: VM) => vm.args)), Map(), arg )
 
 }
