@@ -464,7 +464,7 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 					t.getName == "int" && cls.getName == "java.lang.Integer" ||
 						t.getName == "double" && cls.getName == "java.lang.Double" ||
 						t.getName == "boolean" && cls.getName == "java.lang.Boolean" ||
-						t.getName == "long" && (cls.getName == "java.lang.Integer" ||
+						t.getName == "long" && (cls.getName == "java.lang.Long" ||
 						cls.getName == "scala.math.BigInt") ||
 						/*(t.getName == "scala.Function0" || t.getName == "scala.Function1" || t.getName == "scala.Function2") && a.isInstanceOf[Closure] ||*/
 						t.getName == "scala.collection.Seq" && idx == types.length - 1 ||
