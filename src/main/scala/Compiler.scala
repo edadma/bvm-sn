@@ -425,7 +425,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 					_decls( subject )
 					_decls( expr )
 				case EqExpressionAST( expr, _, _ ) => _decls( expr )
-				case ConditionalExpressionAST( cond, els ) =>	//todo: a value of 'false' should be treated as a falure and also for 'while', etc.
+				case ConditionalExpressionAST( cond, els ) =>
  					cond foreach {
 						case (a, b) =>
 							_decls( a )
@@ -929,6 +929,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 
 						markNesting += 1
 						_emit( c )
+						code += FailIfFalseInst
 						markNesting -= 1
 						code += UnmarkInst
 						comment( "--- if condition end; then begin" )

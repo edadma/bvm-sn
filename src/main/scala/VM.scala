@@ -672,6 +672,7 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 						if (!eoi)
 							fail
 					case FailInst => fail
+					case FailIfFalseInst => if (dereft == false) fail
 					case SaveFlagsInst => push( Flags(flags) )
 					case RestoreFlagsInst => flags = pop.asInstanceOf[Flags].f
 					case SetFlagsInst( setmask, clearmask ) =>
@@ -1244,6 +1245,7 @@ case object RestorePositionInst extends VMInst
 case object BeginningPositionMatchInst extends VMInst
 case object EndPositionMatchInst extends VMInst
 case object FailInst extends VMInst
+case object FailIfFalseInst extends VMInst
 case object DropInst extends VMInst
 case object SaveFlagsInst extends VMInst
 case object RestoreFlagsInst extends VMInst
