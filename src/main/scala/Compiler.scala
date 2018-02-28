@@ -929,7 +929,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 
 						markNesting += 1
 						_emit( c )
-						code += FailIfFalseInst
+//						code += FailIfFalseInst
 						markNesting -= 1
 						code += UnmarkInst
 						comment( "--- if condition end; then begin" )
