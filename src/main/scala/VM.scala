@@ -460,7 +460,7 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 			(objs zip types zipWithIndex).forall( {
 				case ((a, t), idx) =>
 					if (a == null)
-						true
+						true		//todo: should be false for primitive type parameters
 					else {
 						val cls = a.getClass
 
