@@ -38,7 +38,6 @@ case class DotExpressionAST( epos: Position, expr: ExpressionAST, apos: Position
 case class BracketExpressionAST( epos: Position, f: ExpressionAST, apos: Position, arg: ExpressionAST ) extends ExpressionAST
 case class LiteralExpressionAST( v: Any ) extends ExpressionAST
 case class VariableExpressionAST( pos: Position, var name: String, oname: String ) extends ExpressionAST
-case class ComparisonExpressionAST( left: ExpressionAST, comps: List[(Symbol, FunctionMap, ExpressionAST)] ) extends ExpressionAST
 case class BinaryExpressionAST( lpos: Position, left: ExpressionAST, op: Symbol, func: FunctionMap, rpos: Position, right: ExpressionAST ) extends ExpressionAST
 case class UnaryExpressionAST( op: Symbol, func: FunctionMap, pos: Position, expr: ExpressionAST ) extends ExpressionAST
 case class AssignmentExpressionAST( lhs: List[(Position, ExpressionAST)], op: Symbol, func: FunctionMap, rhs: List[(Position, ExpressionAST)] ) extends ExpressionAST
@@ -126,7 +125,7 @@ case object AnyPattern extends PatternAST
 case class ClassPattern( clas: Char => Boolean ) extends PatternAST
 case class CapturePattern( key: String, subpat: PatternAST, conversion: CharSequence => Any ) extends PatternAST with OperatorPattern
 case class NumberedCapturePattern( subpat: PatternAST, var n: Int = 0 ) extends PatternAST with OperatorPattern
-case class CompiledSubPattern(forward: Compilation, reverse: Compilation ) extends PatternAST
+case class CompiledSubPattern( forward: Compilation, reverse: Compilation ) extends PatternAST
 case class AtomicPattern( subpat: PatternAST ) extends PatternAST with OperatorPattern
 case class ReferencePattern( key: String ) extends PatternAST
 case object BeginningOfInputPattern extends PatternAST
