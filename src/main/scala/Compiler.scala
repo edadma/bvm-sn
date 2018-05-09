@@ -466,7 +466,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 							unify( e, pos, namespaces )
 					}
 				case NilStructureAST =>
-					code += TypeCheckInst( struc, pos )
+					code += TypeCheckInst( struc, pos )		// todo: maybe use EmptyInst instead and not emit a drop
 					code += DropInst
 				case ListStructureAST( _, l ) =>
 					code += TypeCheckInst( struc, pos )
@@ -512,8 +512,8 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 					code += TypeCheckInst( struc, pos )
 
 					args.zipWithIndex foreach { case (e, i) =>
-							if (i < args.length - 1)
-								code += DupInst
+						if (i < args.length - 1)
+							code += DupInst
 
 						code += TupleElementInst( i )
 						unify( e, pos, namespaces )
@@ -787,7 +787,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 					for (e <- l)
 						_emit( e )
 
-					code += ListInst( l.length )
+					code += ListInst( l.length )	// todo: use ListBuffer approach instead
 				case SetExpressionAST( l ) =>
 					code += PushInst( Set() )
 
