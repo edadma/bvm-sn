@@ -1,8 +1,8 @@
 name := "bvm"
 
-version := "0.4.2"
+version := "0.4.3"
 
-scalaVersion := "2.12.4"
+scalaVersion := "2.12.6"
 
 //crossScalaVersions := Seq( "2.11.11" )
 
@@ -17,12 +17,12 @@ resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/release
 resolvers += "Hyperreal Repository" at "https://dl.bintray.com/edadma/maven"
 
 libraryDependencies ++= Seq(
-	"org.scalatest" %% "scalatest" % "3.0.4" % "test",
-	"org.scalacheck" %% "scalacheck" % "1.13.4" % "test"
+  "org.scalatest" %% "scalatest" % "3.0.5" % "test",
+  "org.scalacheck" %% "scalacheck" % "1.14.0" % "test"
 )
 
 libraryDependencies ++= Seq(
-	"org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.6"
+	"org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.0"
 )
 
 libraryDependencies ++= Seq(
