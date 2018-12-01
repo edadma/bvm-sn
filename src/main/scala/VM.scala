@@ -955,8 +955,8 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 						derefp match {
 							case i: Int if inclusive => push( i to t.intValue by b.intValue )
 							case i: Int => push( i until t.intValue by b.intValue )
-							case d: Double if inclusive => push( d to t.doubleValue by b.doubleValue )
-							case d: Double => push( d until t.doubleValue by b.doubleValue )
+							case d: Double if inclusive => push( BigDecimal(d) to t.doubleValue by b.doubleValue )
+							case d: Double => push( BigDecimal(d) until t.doubleValue by b.doubleValue )
 							case i: BigInt if inclusive => push( i to bigint(t) by bigint(b) )
 							case i: BigInt => push( i until bigint(t) by bigint(b) )
 							case d: BigDecimal if inclusive => push( d to bigdecimal(t) by bigdecimal(b) )

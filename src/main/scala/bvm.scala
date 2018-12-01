@@ -125,7 +125,7 @@ package object bvm {
 		new Numeric[Any] {
 			def compare( x: Any, y: Any ): Int = naturalCompare( x, y )
 
-			def fromInt( x: Int ) = new Integer( x )
+			def fromInt( x: Int ) = Integer.valueOf( x )
 
 			def minus( x: Any, y: Any ) = Math( '-, x, y )
 
