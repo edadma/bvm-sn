@@ -1005,7 +1005,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 				case BreakExpressionAST( pos, label, expr ) =>
 					val Label( construct, _, nesting, _, breaks, _ ) =
 						if (label isDefined)
-							loops search (_.name == label.get) match {
+							loops search ((_: Label).name == label.get) match {
 								case None => problem( pos, s"label unknown: $loops" )
 								case Some( l ) => l
 							}
@@ -1028,7 +1028,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 				case ContinueExpressionAST( pos, label ) =>
 					val Label( construct, _, nesting, loop, _, continues ) =
 						if (label isDefined)
-							loops search (_.name == label.get) match {
+							loops search ((_: Label).name == label.get) match {
 								case None => problem( pos, s"label unknown: $loops" )
 								case Some( l ) => l
 							}

@@ -123,6 +123,8 @@ package object bvm {
 
 	val NUMERIC =
 		new Numeric[Any] {
+			def parseString( str: String ): Option[Any] = sys.error( "shouldn't call Numeric.parseString()" )
+
 			def compare( x: Any, y: Any ): Int = naturalCompare( x, y )
 
 			def fromInt( x: Int ) = Integer.valueOf( x )

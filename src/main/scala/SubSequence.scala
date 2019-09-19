@@ -6,6 +6,10 @@ class SubSequence( val s: CharSequence, val begin: Int, val end: Int ) extends C
 	require( begin <= end, "begin must be less than end" )
 	require( end <= s.length, "end must be less than or equal to length" )
 
+	def this( s: CharSequence ) {
+		this( s, 0, s.length )
+	}
+
 	def length = end - begin
 
 	def subSequence( i: Int, i1: Int ) = new SubSequence( s, i + begin, i1 + begin )
