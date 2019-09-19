@@ -5,7 +5,7 @@ import java.lang.reflect.{Method, Modifier}
 
 import scala.annotation.tailrec
 import scala.collection.{GenSeq, GenSet}
-import collection.generic.{Growable, Shrinkable}
+import collection.mutable.{Growable, Shrinkable}
 import scala.collection.immutable.TreeMap
 import scala.collection.mutable.{ArrayBuffer, Map => MutableMap, Seq => MutableSeq}
 import util.parsing.input.Position
@@ -417,7 +417,7 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 					for (i <- argc - 1 to 0 by -1)
 						args(i) = pop
 
-					f.asInstanceOf[(VM, Position, List[Position], Any) => Any]( this, apos, ps, ArgList(args: _*) )
+					f.asInstanceOf[(VM, Position, List[Position], Any) => Any]( this, apos, ps, ArgList(args.toIndexedSeq: _*) )
 				}) match {
 					case Fail => fail
 					case res => push( res )
@@ -1026,7 +1026,7 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 						val elem = derefp
 
 						push( derefp.asInstanceOf[Vector[Any]] :+ elem )
-					case ToListInst => push( derefp.asInstanceOf[TraversableOnce[Any]].toList )
+					case ToListInst => push( derefp.asInstanceOf[IterableOnce[Any]].iterator.to(List) )
 					case ToSetInst => push( derefp.asInstanceOf[TraversableOnce[Any]].toSet )
 					case BracketInst( epos, apos ) =>
 						val arg = derefp

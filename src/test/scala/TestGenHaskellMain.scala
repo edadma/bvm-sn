@@ -24,15 +24,15 @@ object TestGenHaskellMain {//extends App {
 				|package xyz.hyperreal.matcher
 				|
 				|import org.scalatest._
-				|import prop.PropertyChecks
+				|import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 				|
 				|
-				|class $test extends FreeSpec with PropertyChecks with Matchers with HaskellTest {
+				|class $test extends FreeSpec with ScalaCheckPropertyChecks with Matchers with HaskellTest {
 			""".stripMargin.trim )
 
 		var prev = ""
 
-		for (line <- io.Source.fromFile( s"regex-posix-unittest-1.1/$f.txt" ).getLines) {
+		for (line <- io.Source.fromFile( s"regex-posix-unittest-1.1/data-dir/$f.txt" ).getLines) {
 			out.println
 
 			line.trim split "\\s+" match {

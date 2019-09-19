@@ -2,12 +2,12 @@
 package xyz.hyperreal.bvm
 
 import org.scalatest._
-import prop.PropertyChecks
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 import scala.util.parsing.input.Position
 
 
-class LanguageSupportTests extends FreeSpec with PropertyChecks with Matchers {
+class LanguageSupportTests extends FreeSpec with ScalaCheckPropertyChecks with Matchers {
 
   val constants =
     Map(

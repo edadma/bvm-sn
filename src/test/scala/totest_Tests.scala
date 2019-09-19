@@ -1,10 +1,10 @@
 package xyz.hyperreal.funl2
 
 import org.scalatest._
-import prop.PropertyChecks
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 
-class totest_Tests extends FreeSpec with PropertyChecks with Matchers with HaskellTest {
+class totest_Tests extends FreeSpec with ScalaCheckPropertyChecks with Matchers with HaskellTest {
 
 	"01" in {
 		test( """a+""", """xaax""", "(1,3)" ) shouldBe true

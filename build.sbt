@@ -23,7 +23,6 @@ libraryDependencies ++= Seq(
 
 libraryDependencies ++= Seq(
 	"xyz.hyperreal" %% "lia" % "0.23",
-//  "xyz.hyperreal" %% "pretty" % "0.2"
 )
 
 bintrayRepository := "maven"
