@@ -334,7 +334,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 						case ConstantVarResult( _ ) => problem( pos, s"constant not val: $oname" )
 						case DeclVarResult( _, _, _ ) =>
 							findscope( name, namespaces ) match {
-								case Some( s ) => v.name = s.scopenum + name
+								case Some( s ) => v.name = s"${s.scopenum}$name"
 								case None => problem( pos, s"*** BUG ***: $oname" )
 							}
 					}
@@ -1215,6 +1215,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 					findvariable( name, namespaces ) match {
 						case DeclVarResult( FunctionDecl(_, _, _, arity, _, entry, _), _, fidx ) =>
 							code += PushFunctionReferenceInst( entry, oname, arity, fidx )
+						case _ => sys.error( "problem" )
 					}
 				case PartialFunctionExpressionAST( cases ) =>
 
@@ -1575,6 +1576,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 					case _ => false
 				} map {
 					case (k, FunctionDecl(_, _, _, arity, _, entry, _)) => (k.substring( 1 ), (entry, arity))
+					case _ => sys.error( "problem" )
 				} toMap
 
 		val variables =
@@ -1586,6 +1588,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 					case _ => false
 				} map {
 					case (k, VarDecl(idx, _, _)) => (k.substring( 1 ), idx)
+					case _ => sys.error( "problem" )
 				} toMap
 
 		new Compilation( functions, variables, constants, captureTrees, code.toArray )

@@ -1027,7 +1027,7 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 
 						push( derefp.asInstanceOf[Vector[Any]] :+ elem )
 					case ToListInst => push( derefp.asInstanceOf[IterableOnce[Any]].iterator.to(List) )
-					case ToSetInst => push( derefp.asInstanceOf[TraversableOnce[Any]].toSet )
+					case ToSetInst => push( derefp.asInstanceOf[IterableOnce[Any]].toSet )
 					case BracketInst( epos, apos ) =>
 						val arg = derefp
 
