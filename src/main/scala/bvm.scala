@@ -3,9 +3,10 @@ package xyz.hyperreal
 import java.io.ByteArrayOutputStream
 
 import scala.util.parsing.input.Position
-
 import xyz.hyperreal.bvm.Pattern._
 import xyz.hyperreal.lia.Math
+
+import scala.collection.immutable.ArraySeq
 
 
 package object bvm {
@@ -113,6 +114,7 @@ package object bvm {
 			case m: collection.Map[_, _] if m isEmpty => "{}"
 			case m: collection.Map[_, _] => m.toList.map( {case (k, v) => displayQuoted(k) + ": " + displayQuoted(v)} ).mkString( "{", ", ", "}" )
 			case t: Vector[_] => t.map( display ).mkString( "<", ", ", ">" )
+			case t: ArraySeq[_] => t.map( display ).mkString( "<", ", ", ">" )
 			case t: Tuple => t.map( display ).mkString( "(", ", ", ")" )
 			case p: Product if p.productArity > 0 && !p.productPrefix.startsWith( "Tuple" ) =>
 				p.productPrefix + '(' + p.productIterator.map( display ).mkString( ", " ) + ')'
