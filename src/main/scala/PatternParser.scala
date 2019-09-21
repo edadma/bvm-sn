@@ -162,9 +162,9 @@ class PatternParser extends RegexParsers with PackratParsers {
 		if (pos eq null)
 			sys.error( error )
 		else if (pos.line == 1)
-			sys.error( error + "\n" + pos.longString )
+			sys.error( s"$error\n${pos.longString}" )
 		else
-			sys.error( pos.line + ": " + error + "\n" + pos.longString )
+			sys.error( s"${pos.line}: $error\n${pos.longString}" )
 
 	def parseFromStringWithResult[T]( src: String ) =
 		parseAll( regex, new CharSequenceReader(src) ) match {

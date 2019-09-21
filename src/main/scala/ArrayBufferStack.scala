@@ -5,7 +5,7 @@ import scala.collection.mutable.ArrayBuffer
 
 class ArrayBufferStack[T] extends ArrayBuffer[T] {
 
-	def push( e: T* ) = append( e: _* )
+	def push( e: T* ) = appendAll( e )
 
 	def pop = remove( size - 1 )
 

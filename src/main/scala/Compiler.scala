@@ -37,11 +37,11 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 			scopes = new Scope( scopenum ) :: scopes
 		}
 
-		def exitScope {
+		def exitScope: Unit = {
 			val cur = scopes.head
 
 			for ((k, v) <- cur.symbols if !k.head.isDigit) {
-				cur.symbols(cur.scopenum + k) = v
+				cur.symbols(s"${cur.scopenum}$k") = v
 				cur.symbols -= k
 			}
 
@@ -120,9 +120,9 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 							case None => NoneVarResult
 							case Some( c ) => ConstantVarResult( c )
 						}
-					case Some( d ) => DeclVarResult( d, 'global, 0 )
+					case Some( d ) => DeclVarResult( d, Symbol("global"), 0 )
 				}
-			case Some( (d, i) ) => DeclVarResult( d, 'local, i )
+			case Some( (d, i) ) => DeclVarResult( d, Symbol("local"), i )
 		}
 	}
 
@@ -132,11 +132,11 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 		else
 			globals getscope name
 
-	protected def sourceExplicitsExtension( explicits: AST => Unit ) {}
+	protected def sourceExplicitsExtension( explicits: AST => Unit ) = {}
 
-	protected def sourceDeclsExtension( decls: AST => Unit ) {}
+	protected def sourceDeclsExtension( decls: AST => Unit ) = {}
 
-	protected def sourceEmitExtension( emit: AST => Unit ) {}
+	protected def sourceEmitExtension( emit: AST => Unit ) = {}
 
 	protected def explicitsExtension: PartialFunction[(AST, AST => Unit), Any] = {
 		case null => ()
@@ -146,7 +146,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 		case null => ()
 	}
 
-	private def decls( ast: AST, namespaces: List[Namespace], structvars: HashSet[String] = null ) {
+	private def decls( ast: AST, namespaces: List[Namespace], structvars: HashSet[String] = null ): Unit = {
 		def declarations = if (namespaces nonEmpty) namespaces.head else globals
 
 		def varnum = declarations.countvars
@@ -231,7 +231,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 
 					localdecls.exitScope
 
-					val newname = getscope( name, namespaces ).scopenum + name
+					val newname = s"${getscope( name, namespaces ).scopenum}$name"
 
 					f.name = newname
 				case WhereClauseAST( where ) =>
@@ -240,7 +240,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 				case v@VarAST( _, name, _, init ) =>
 					init foreach _decls
 
-					val newname = getscope( name, namespaces ).scopenum + name
+					val newname = s"${getscope( name, namespaces ).scopenum}$name"
 
 					v.name = newname
 				case DataAST( pos, tname, constructors ) =>
@@ -259,7 +259,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 								structvars += name
 					}
 
-					val newname = getdeclarations( namespaces ).getscope( name ).get.scopenum + name
+					val newname = s"${getdeclarations( namespaces ).getscope( name ).get.scopenum}$name"
 
 					v.name = newname
 				case TupleStructureAST( _, l ) => l foreach _decls
@@ -297,7 +297,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 							_decls( s )
 					}
 
-					val newname = getdeclarations( namespaces ).getscope( alias ).get.scopenum + alias
+					val newname = s"${getdeclarations( namespaces ).getscope( alias ).get.scopenum}$alias"
 
 					n.alias = newname
 				case BlockExpressionAST( s ) =>
@@ -312,13 +312,13 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 
 							findscope( name, namespaces ) match {
 								case Some( s ) =>
-									v.name = s.scopenum + name
+									v.name = s"${s.scopenum}$name"
 								case None => problem( pos, "*** BUG *** not found in any scope" )
 							}
 						case ConstantVarResult( _ ) =>
 						case DeclVarResult( _, _, _ ) =>
 							findscope( name, namespaces ) match {
-								case Some( s ) => v.name = s.scopenum + name
+								case Some( s ) => v.name = s"${s.scopenum}$name"
 								case None =>
 							}
 					}
@@ -396,7 +396,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 						_decls( k )
 						_decls( v )
 					}
-				case UnboundedStreamExpressionAST( _, f, _, b ) =>
+				case UnboundedLazyListExpressionAST( _, f, _, b ) =>
 					_decls( f )
 					_decls( b )
 				case SequenceExpressionAST( _, f, _, t, _, b, _ ) =>
@@ -593,7 +593,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 		var markNesting = 0
 		val loops = new ArrayBufferStack[Label]
 
-		case class Label( construct: Symbol, name: String, nesting: Int, loop: Int, breaks: ArrayBuffer[Int], continues: ArrayBuffer[Int] )
+		case class Label( construct: String, name: String, nesting: Int, loop: Int, breaks: ArrayBuffer[Int], continues: ArrayBuffer[Int] )
 
 		def comment( s: String, pos: Position = null ) =
 			if (comments)
@@ -731,7 +731,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 							if (!declared && !set && fidx == 0) {
 								code += PushInst( undefined )
 
-								if (space == 'global)
+								if (space == Symbol("global"))
 									code += SetGlobalInst( idx, true )
 								else
 									code += SetLocalInst( idx, true )
@@ -739,7 +739,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 								d.set = true
 							}
 
-							if (space == 'local)
+							if (space == Symbol("local"))
 								code += LocalInst( fidx, idx, name )
 							else
 								code += GlobalInst( idx, name )
@@ -763,10 +763,10 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 					code += RangeInst( pf, pt, pb, inclusive )
 				case SequenceExpressionAST( pf, f, pt, t, pb, b, inclusive ) =>
 					_emit( GenerateExpressionAST(pf, RangeExpressionAST(pf, f, pt, t, pb, b, inclusive)) )
-				case UnboundedStreamExpressionAST( pf, f, pb, b ) =>
+				case UnboundedLazyListExpressionAST( pf, f, pb, b ) =>
 					_emit( f )
 					_emit( b )
-					code += UnboundedStreamInst( pf, pb )
+					code += UnboundedLazyListInst( pf, pb )
 				case ApplyExpressionAST( epos, f, apos, args, _ ) =>
 					args map {case (_, a) => a} foreach _emit
 					_emit( f )
@@ -953,7 +953,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 					val breaks = new ArrayBuffer[Int]
 					val continues = new ArrayBuffer[Int]
 
-					loops += Label( 'repeat, label orNull, markNesting, loop, breaks, continues )
+					loops += Label( "repeat", label orNull, markNesting, loop, breaks, continues )
 
 					code += MarkInst( loop - code.length - 1 )
 					markNesting += 1
@@ -971,7 +971,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 					val breaks = new ArrayBuffer[Int]
 					val continues = new ArrayBuffer[Int]
 
-					loops += Label( 'while, label orNull, markNesting, loop, breaks, continues )
+					loops += Label( "while", label orNull, markNesting, loop, breaks, continues )
 
 					if (els isDefined)
 						code += null
@@ -1036,12 +1036,12 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 							loops top
 
 					construct match {
-						case 'every =>
+						case "every" =>
 							for (_ <- 1 until markNesting - nesting)
 								code += UnmarkInst
 
 							code += FailInst
-						case 'repeat|'while =>
+						case "repeat"|"while" =>
 							for (_ <- 1 to markNesting - nesting)
 								code += UnmarkInst
 
@@ -1052,7 +1052,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 					val breaks = new ArrayBuffer[Int]
 					val continues = new ArrayBuffer[Int]
 
-					loops += Label( 'every, label orNull, markNesting, loop, breaks, continues )
+					loops += Label( "every", label orNull, markNesting, loop, breaks, continues )
 
 					if (els isDefined)
 						code += null
@@ -1164,7 +1164,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 				case ComprehensionBodyAST( expr ) =>
 					comment( "--- comprehension body start ---" )
 					_emit( expr )
-					code += AssignmentInst( 1, Vector(null), '+, null, Vector(null) )
+					code += AssignmentInst( 1, Vector(null), Symbol("+"), null, Vector(null) )
 					comment( "--- comprehension body end ---" )
 				case FailExpressionAST => code += FailInst
 				case SectionExpressionAST( op, func ) => code += PushInst( SectionOperation(op, func) )

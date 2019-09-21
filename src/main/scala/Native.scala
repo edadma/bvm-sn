@@ -80,10 +80,10 @@ abstract class Native( val name: String, val classes: List[Class[_]] ) extends (
 	override def toString = name + (classes map (_.getSimpleName) mkString ("(", ", ", ")"))
 }
 
-class JSWrapper( vm: VM, n: Native ) extends AbstractJSObject {
-	override def isFunction = true
-
-	override def call( thiz: Any, args: AnyRef* ): AnyRef = {
-		n( vm, args.toList )
-	}
-}
+//class JSWrapper( vm: VM, n: Native ) extends AbstractJSObject {
+//	override def isFunction = true
+//
+//	override def call( thiz: Any, args: AnyRef* ): AnyRef = {
+//		n( vm, args.toList )
+//	}
+//}

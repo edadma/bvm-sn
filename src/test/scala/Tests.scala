@@ -11,7 +11,7 @@ class Tests extends FreeSpec with ScalaCheckPropertyChecks with Matchers {
 
 	"named capture groups" in {
 		Pattern.compile( """^(?<a>[a-z]+)-(?<n>[0-9]+)$""" ).allMatches( """xyzzy-14""" ) shouldBe
-			Stream(
+			LazyList(
 				TreeMap(
 					"0" -> (0, 8, new SubSequence("xyzzy-14")),
 					"a" -> (0, 5, new SubSequence("xyzzy")),

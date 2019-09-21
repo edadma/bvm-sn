@@ -27,7 +27,7 @@ case class SetValueExpressionAST( pos: Position, var name: String, oname: String
 case class NativeFunctionExpressionAST( function: VM => Any ) extends ExpressionAST
 case class RegexLiteralAST( pos: Position, regex: String ) extends ExpressionAST
 case class RangeExpressionAST( fpos: Position, f: ExpressionAST, tpos: Position, t: ExpressionAST, bpos: Position, b: ExpressionAST, inclusive: Boolean ) extends ExpressionAST
-case class UnboundedStreamExpressionAST( fpos: Position, f: ExpressionAST, bpos: Position, b: ExpressionAST ) extends ExpressionAST
+case class UnboundedLazyListExpressionAST( fpos: Position, f: ExpressionAST, bpos: Position, b: ExpressionAST ) extends ExpressionAST
 case class SequenceExpressionAST( fpos: Position, f: ExpressionAST, tpos: Position, t: ExpressionAST, bpos: Position, b: ExpressionAST, inclusive: Boolean ) extends ExpressionAST
 case class GenerateExpressionAST( pos: Position, collection: ExpressionAST ) extends ExpressionAST
 case class GeneratorExpressionAST( structure: StructureAST, pos: Position, traversable: ExpressionAST, filter: Option[ExpressionAST] ) extends ExpressionAST

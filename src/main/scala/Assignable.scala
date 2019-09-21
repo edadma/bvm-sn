@@ -7,7 +7,7 @@ trait Assignable {
 
 	def value: Any
 
-	def value_=( v: Any )
+	def value_=( v: Any ): Unit
 
 }
 

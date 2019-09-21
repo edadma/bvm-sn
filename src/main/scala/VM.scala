@@ -6,7 +6,7 @@ import java.lang.reflect.{Method, Modifier}
 import scala.annotation.tailrec
 import scala.collection.{GenSeq, GenSet}
 import collection.mutable.{Growable, Shrinkable}
-import scala.collection.immutable.TreeMap
+import scala.collection.immutable.{ArraySeq, TreeMap}
 import scala.collection.mutable.{ArrayBuffer, Map => MutableMap, Seq => MutableSeq}
 import util.parsing.input.Position
 import xyz.hyperreal.lia.{FunctionMap, Math}
@@ -227,7 +227,7 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 		val l = derefp
 
 		op match {
-			case '+ =>
+			case Symbol("+") =>
 				if (l.isInstanceOf[String] || r.isInstanceOf[String])
 					push( display(l) + display(r) )
 				else
@@ -246,25 +246,25 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 							else
 								push( Math(func, l, r) )
 					}
-			case '== | '!= =>
+			case Symbol("==") | Symbol("!=") =>
 				if ((l, r) match {
 					case (_: Number, _: Number) => Math.predicate( func, l, r )
-					case _ => if (op == '==) l == r else l != r
+					case _ => if (op == Symbol("==")) l == r else l != r
 				})
 					push( r )
 				else
 					fail
-			case '< | '> | '<= | '>= | 'div =>
+			case Symbol("<") | Symbol(">") | Symbol("<=") | Symbol(">=") | Symbol("div") =>
 				if (Math.predicate( func, l, r ))
 					push( r )
 				else
 					fail
-			case ': =>
+			case Symbol(":") =>
 				r match {
 					case s: List[Any] => push( l :: s )
 					case _ => problem( rpos, s"not a list: ${display(r)}" )
 				}
-			case 'in | 'notin =>
+			case Symbol("in") | Symbol("notin") =>
 //			case 'adj =>
 //				if (!l.isInstanceOf[Number]) {
 //
@@ -279,7 +279,7 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 		}
 	}
 
-	protected def callIndirect( callable: Any, fpos: Position, apos: Position, ps: List[Position], argc: Int ) {
+	protected def callIndirect( callable: Any, fpos: Position, apos: Position, ps: List[Position], argc: Int ): Unit = {
 		callable match {
 			case SectionOperation( op, func ) =>
 				if (argc != 2)
@@ -318,7 +318,7 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 				for (i <- c.arity - 1 to 0 by -1)
 					args(i) = derefp
 
-				push( new Record(c.name, args, c.symbolMap, c.stringMap) )
+				push( new Record(c.name, ArraySeq.from(args), c.symbolMap, c.stringMap) )
 			case r: Record =>
 				if (argc != 1)
 					problem( apos, "a function application with one argument was expected" )
@@ -715,7 +715,7 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 						for (i <- arity - 1 to 0 by -1)
 							a(i) = derefp
 
-						push( new Tuple(a) )
+						push( new Tuple(ArraySeq.from(a)) )
 					case TupleElementInst( n ) => push( derefp.asInstanceOf[TupleLike].element(n) )
 					case DupInst => push( top )
 					case DupUnderInst =>
@@ -794,7 +794,7 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 						val rhs = for (_ <- 1 to len) yield derefp
 						val lhs = for (_ <- 1 to len) yield pop
 
-						def assignment {
+						def assignment: Unit = {
 							var res: Any = null
 
 							for (i <- len - 1 to 0 by -1)
@@ -811,26 +811,26 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 									}
 								else
 									(op, deref( lhs(i) )) match {
-										case ('-, s: Shrinkable[_]) =>
+										case (Symbol("-"), s: Shrinkable[_]) =>
 											s.asInstanceOf[Shrinkable[Any]] -= rhs(i)
 											res = s
-										case ('--, s: Shrinkable[_]) =>
-											s.asInstanceOf[Shrinkable[Any]] --= rhs(i).asInstanceOf[TraversableOnce[Any]]
+										case (Symbol("--"), s: Shrinkable[_]) =>
+											s.asInstanceOf[Shrinkable[Any]] --= rhs(i).asInstanceOf[IterableOnce[Any]]
 											res = s
-										case ('+, g: Growable[_]) =>
+										case (Symbol("+"), g: Growable[_]) =>
 											g.asInstanceOf[Growable[Any]] += rhs(i)
 											res = g
-										case ('++, g: Growable[_]) =>
-											g.asInstanceOf[Growable[Any]] ++= rhs(i).asInstanceOf[TraversableOnce[Any]]
+										case (Symbol("++"), g: Growable[_]) =>
+											g.asInstanceOf[Growable[Any]] ++= rhs(i).asInstanceOf[IterableOnce[Any]]
 											res = g
 										case _ =>
 											lhs(i) match {
 												case l: Assignable =>
 													(op, l.value) match {
-														case ('+, seq: GenSeq[Any]) => l.value = seq :+ rhs(i)
-														case ('+, set: GenSet[_]) => l.value = set.asInstanceOf[GenSet[Any]] + rhs(i)
-														case ('+, s: String) => l.value = s + rhs(i)
-														case (('<:)|'>:, n: Number) =>
+														case (Symbol("+"), seq: collection.Seq[Any]) => l.value = seq :+ rhs(i)
+														case (Symbol("+"), set: collection.Set[_]) => l.value = set.asInstanceOf[collection.Set[Any]] concat List(rhs(i))
+														case (Symbol("+"), s: String) => l.value = s + rhs(i)
+														case (Symbol("<:")|Symbol(">:"), n: Number) =>
 															if (!rhs(i).isInstanceOf[Number])
 																problem( rpos(i), s"not a number: ${display(rhs(i))}" )
 
@@ -840,14 +840,14 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 																fail
 																return
 															}
-														case ('<:, s: String) =>
+														case (Symbol("<:"), s: String) =>
 															if (s < String.valueOf(rhs(i)))
 																l.value = rhs(i)
 															else {
 																fail
 																return
 															}
-														case ('>:, s: String) =>
+														case (Symbol(">:"), s: String) =>
 															if (s > String.valueOf(rhs(i)))
 																l.value = rhs(i)
 															else {
@@ -879,14 +879,14 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 							problem( pos, s"not a number: ${display(d)}" )
 
 						op match {
-							case '- => push( Math('-, d) )
-							case ('++*)|('--*)|('*++)|'*-- if !v.isInstanceOf[Assignable] => problem( pos, "not an l-value" )
-							case ('++*)|'--* =>
+							case Symbol("-") => push( Math(Symbol("-"), d) )
+							case Symbol("++*")|Symbol("--*")|Symbol("*++")|Symbol("*--") if !v.isInstanceOf[Assignable] => problem( pos, "not an l-value" )
+							case Symbol("++*")|Symbol("--*") =>
 								val res = Math( func, d, 1 )
 
 								v.asInstanceOf[Assignable].value = res
 								push( res )
-							case ('*++)|'*-- =>
+							case Symbol("*++")|Symbol("*--") =>
 								v.asInstanceOf[Assignable].value = Math( func, d, 1 )
 								push( d )
 						}
@@ -963,7 +963,7 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 							case d: BigDecimal => push( d until bigdecimal(t) by bigdecimal(b) )
 							case v => problem( pf, s"expected a number (real and not a fraction) as the range initial value: ${display(v)}" )
 						}
-					case UnboundedStreamInst( fpos, bpos ) =>
+					case UnboundedLazyListInst( fpos, bpos ) =>
 						val b =
 							derefp match {
 								case n: Number => n
@@ -975,7 +975,7 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 								case o => problem( fpos, s"expected start value to be a number: $o" )
 							}
 
-						push( Stream.iterate(f)(v => Math('+, v, b).asInstanceOf[Number]) )
+						push( LazyList.iterate(f)(v => Math(Symbol("+"), v, b).asInstanceOf[Number]) )
 					case CommentInst( _ ) =>
 					case EmptyInst => push( derefp.asInstanceOf[Seq[_]].isEmpty )
 					case HaltInst => ip = HALT
@@ -1027,7 +1027,7 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 
 						push( derefp.asInstanceOf[Vector[Any]] :+ elem )
 					case ToListInst => push( derefp.asInstanceOf[IterableOnce[Any]].iterator.to(List) )
-					case ToSetInst => push( derefp.asInstanceOf[IterableOnce[Any]].toSet )
+					case ToSetInst => push( derefp.asInstanceOf[IterableOnce[Any]].iterator.to(Set) )
 					case BracketInst( epos, apos ) =>
 						val arg = derefp
 
@@ -1304,7 +1304,7 @@ case object GeneratorInst extends VMInst
 //case class IteratorInst( pos: Position ) extends VMInst
 //case object IterateInst extends VMInst
 case class RangeInst( fpos: Position, tpos: Position, bpos: Position, inclusive: Boolean ) extends VMInst
-case class UnboundedStreamInst( fpos: Position, bpos: Position ) extends VMInst
+case class UnboundedLazyListInst(fpos: Position, bpos: Position ) extends VMInst
 case class CommentInst( comment: String ) extends VMInst
 case class DotOperatorInst( epos: Position, apos: Position, field: Symbol ) extends VMInst
 case object HaltInst extends VMInst

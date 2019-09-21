@@ -24,16 +24,16 @@ class Compilation( val functions: Map[String, (Int, Int)], val variables: Map[St
 	def allMatches( subject: CharSequence, scan: Boolean = true, anchored: Boolean = false ) = {
 		val m = matcher( scan = scan, anchored = anchored )
 
-		def allRematches: Stream[Map[String, Any]] =
+		def allRematches: LazyList[Map[String, Any]] =
 			if (m.rematches)
 				m.groups #:: allRematches
 			else
-				Stream.empty
+				LazyList.empty
 
 		if (m.matches( subject ))
 			m.groups #:: allRematches
 		else
-			Stream.empty
+			LazyList.empty
 	}
 
 	def matcher( scan: Boolean = false, anchored: Boolean = false ) = matcherConstructor( scan, anchored, null )

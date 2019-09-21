@@ -66,7 +66,7 @@ package object bvm {
 		if (pos eq null)
 			sys.error( error )
 		else
-			sys.error( pos.line + ": " + error + "\n" + pos.longString )
+			sys.error( s"${pos.line}: $error\n${pos.longString}" )
 
 	def run( ast: AST, constants: Map[String, Any], sysvars: Map[String, VM => Any],
 					 macros: Map[String, List[AST] => AST], args: Any* ) = {
@@ -92,7 +92,7 @@ package object bvm {
 				for ((k, v) <- List( "\\" -> "\\\\", "\"" -> "\\\"", "\t" -> "\\t", "\b" -> "\\b", "\f" -> "\\f", "\n" -> "\\n", "\r" -> "\\r", "\b" -> "\\b" ))
 					t = t.replaceAllLiterally( k, v )
 
-				'"' + t + '"'
+				s""""$t""""
 			case _ => display( a )
 		}
 
@@ -100,7 +100,7 @@ package object bvm {
 		a match {
 			case a: Array[_] => a map display mkString ("Array(", ", ", ")")
 			case l: List[_] => l map displayQuoted mkString ("[", ", ", "]")
-			case s: Stream[_] =>
+			case s: LazyList[_] =>
 				val howMany = 100
 				val bunch = s take (howMany + 1)
 
@@ -129,13 +129,13 @@ package object bvm {
 
 			def fromInt( x: Int ) = Integer.valueOf( x )
 
-			def minus( x: Any, y: Any ) = Math( '-, x, y )
+			def minus( x: Any, y: Any ) = Math( Symbol("-"), x, y )
 
-			def negate( x: Any ) = Math( '-, x )
+			def negate( x: Any ) = Math( Symbol("-"), x )
 
-			def plus( x: Any, y: Any ) = Math( '+, x, y )
+			def plus( x: Any, y: Any ) = Math( Symbol("+"), x, y )
 
-			def times( x: Any, y: Any ) = Math( '*, x, y )
+			def times( x: Any, y: Any ) = Math( Symbol("*"), x, y )
 
 			def toDouble( x: Any ) = x.asInstanceOf[Number].doubleValue
 
@@ -156,9 +156,9 @@ package object bvm {
 		(x, y) match
 		{
 			case (a: Number, b: Number) =>
-				if (Math( '<, a, b ).asInstanceOf[Boolean])
+				if (Math( Symbol("<"), a, b ).asInstanceOf[Boolean])
 					-1
-				else if (Math( '>, a, b ).asInstanceOf[Boolean])
+				else if (Math( Symbol(">"), a, b ).asInstanceOf[Boolean])
 					1
 				else
 					0
