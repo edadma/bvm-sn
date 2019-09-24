@@ -42,7 +42,7 @@ class VM( code: Compilation, captureTrees: ArraySeq[Node], scan: Boolean, anchor
 	var trace = false
 	var limit = Int.MaxValue
 
-	protected def discard( elems: Int ) = stack.remove( stack.size - elems, elems )
+	protected def discard( elems: Int ) = stack.remove( 0, elems )
 
 	protected def set( bits: Int ) = (flags&bits) > 0
 
@@ -593,9 +593,9 @@ class VM( code: Compilation, captureTrees: ArraySeq[Node], scan: Boolean, anchor
 						discard( stack.size - mark )
 						stateSameData
 					case ChangeMarkInst( disp ) =>
-						val ChoicePoint( flags, dat, ptr, _, starts, captures, frm, mrk, ps, rt, action ) = stack( stack.size - mark + 1 )
+						val ChoicePoint( flags, dat, ptr, _, starts, captures, frm, mrk, ps, rt, action ) = stack(mark)
 
-						stack( stack.size - mark + 1 ) = ChoicePoint( flags, dat, ptr, ip + disp, starts, captures, frm, mrk, ps, rt, action )
+						stack(mark) = ChoicePoint( flags, dat, ptr, ip + disp, starts, captures, frm, mrk, ps, rt, action )
 					case ClassInst( clas ) =>
 						if (!eoi && !clas( current ))
 							fail

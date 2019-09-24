@@ -1,6 +1,6 @@
 name := "bvm"
 
-version := "0.5.1"
+version := "0.5.2"
 
 scalaVersion := "2.13.1"
 
