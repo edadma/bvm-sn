@@ -1,12 +1,14 @@
 name := "bvm"
 
-version := "0.5.2"
+version := "0.5.3"
 
 scalaVersion := "2.13.1"
 
 scalacOptions ++= Seq( "-deprecation", "-feature", "-unchecked", "-language:postfixOps", "-language:implicitConversions", "-language:existentials" )
 
 organization := "xyz.hyperreal"
+
+Global / onChangedBuildSource := ReloadOnSourceChanges
 
 resolvers += "Typesafe Repository" at "https://repo.typesafe.com/typesafe/releases/"
 

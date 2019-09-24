@@ -593,9 +593,9 @@ class VM( code: Compilation, captureTrees: ArraySeq[Node], scan: Boolean, anchor
 						discard( stack.size - mark )
 						stateSameData
 					case ChangeMarkInst( disp ) =>
-						val ChoicePoint( flags, dat, ptr, _, starts, captures, frm, mrk, ps, rt, action ) = stack(mark)
+						val ChoicePoint( flags, dat, ptr, _, starts, captures, frm, mrk, ps, rt, action ) = stack(mark - 2)
 
-						stack(mark) = ChoicePoint( flags, dat, ptr, ip + disp, starts, captures, frm, mrk, ps, rt, action )
+						stack(mark - 2) = ChoicePoint( flags, dat, ptr, ip + disp, starts, captures, frm, mrk, ps, rt, action )
 					case ClassInst( clas ) =>
 						if (!eoi && !clas( current ))
 							fail
