@@ -3,15 +3,15 @@ package xyz.hyperreal.bvm
 
 import java.lang.reflect.{Method, Modifier}
 
+import scala.math.ScalaNumber
 import scala.annotation.tailrec
-import scala.collection.{GenSeq, GenSet}
 import collection.mutable.{Growable, Shrinkable}
 import scala.collection.immutable.{ArraySeq, TreeMap}
 import scala.collection.mutable.{ArrayBuffer, Map => MutableMap, Seq => MutableSeq}
 import util.parsing.input.Position
 import xyz.hyperreal.lia.{FunctionMap, Math}
 
-import scala.math.ScalaNumber
+import scala.collection.mutable
 
 
 object VM {
@@ -20,11 +20,11 @@ object VM {
 	private val VM_STATE = -2
 }
 
-class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored: Boolean, val args: Any ) {
+class VM( code: Compilation, captureTrees: ArraySeq[Node], scan: Boolean, anchored: Boolean, val args: Any ) {
 	import VM._
 
 	var seq: CharSequence = _
-	protected [bvm] val stack = new ArrayBufferStack[ChoicePoint]
+	protected [bvm] val stack = new mutable.Stack[ChoicePoint]
 	protected [bvm] var flags: Int = _
 	protected [bvm] var data: List[Any] = _
 	protected [bvm] var ptr: Int = _
@@ -41,6 +41,8 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 	protected [bvm] var bindings = new ArrayBuffer[Any]
 	var trace = false
 	var limit = Int.MaxValue
+
+	protected def discard( elems: Int ) = stack.remove( stack.size - elems, elems )
 
 	protected def set( bits: Int ) = (flags&bits) > 0
 
@@ -576,7 +578,7 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 					case DropInst => pop
 					case CutInst =>
 						pop match {
-							case Cut( size ) => stack.discard( stack.size - size )
+							case Cut( size ) => discard( stack.size - size )
 						}
 					case MarkInst( disp ) =>
 						pushChoice( disp )
@@ -585,10 +587,10 @@ class VM( code: Compilation, captureTrees: Array[Node], scan: Boolean, anchored:
 						pushState
 						mark = stack.size
 					case UnmarkInst =>
-						stack.discard( stack.size - mark )
+						discard( stack.size - mark )
 						state
 					case UnmarkSameDataInst =>
-						stack.discard( stack.size - mark )
+						discard( stack.size - mark )
 						stateSameData
 					case ChangeMarkInst( disp ) =>
 						val ChoicePoint( flags, dat, ptr, _, starts, captures, frm, mrk, ps, rt, action ) = stack( stack.size - mark + 1 )

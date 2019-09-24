@@ -1,8 +1,9 @@
 //@
 package xyz.hyperreal.bvm
 
-import scala.collection.immutable.TreeMap
-import scala.collection.mutable.{ArrayBuffer, HashMap, HashSet, LinkedHashMap, ListBuffer, LinkedHashSet}
+import scala.collection.immutable.{ArraySeq, TreeMap}
+import scala.collection.mutable
+import scala.collection.mutable.{ArrayBuffer, HashMap, HashSet, LinkedHashMap, LinkedHashSet, ListBuffer}
 import scala.util.parsing.input.Position
 
 
@@ -591,9 +592,11 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 
 	protected def emit( ast: AST, namespaces: List[Namespace] ): Unit = {
 		var markNesting = 0
-		val loops = new ArrayBufferStack[Label]
+		val loops = new mutable.Stack[Label]
 
 		case class Label( construct: String, name: String, nesting: Int, loop: Int, breaks: ArrayBuffer[Int], continues: ArrayBuffer[Int] )
+
+    def search( name: String ) = loops.reverseIterator find (_.name == name)
 
 		def comment( s: String, pos: Position = null ) =
 			if (comments)
@@ -1005,7 +1008,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 				case BreakExpressionAST( pos, label, expr ) =>
 					val Label( construct, _, nesting, _, breaks, _ ) =
 						if (label isDefined)
-							loops search ((_: Label).name == label.get) match {
+							search( label.get ) match {
 								case None => problem( pos, s"label unknown: $loops" )
 								case Some( l ) => l
 							}
@@ -1028,7 +1031,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 				case ContinueExpressionAST( pos, label ) =>
 					val Label( construct, _, nesting, loop, _, continues ) =
 						if (label isDefined)
-							loops search ((_: Label).name == label.get) match {
+              search( label.get ) match {
 								case None => problem( pos, s"label unknown: $loops" )
 								case Some( l ) => l
 							}
@@ -1556,7 +1559,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 			val nodes = new ArrayBuffer[Node]()
 
 			_numberCaptureGroups( ast, nodes )
-			map.values.toArray
+			map.values.to(ArraySeq)
 		}
 
 		globals = new Namespace
@@ -1591,6 +1594,6 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 					case _ => sys.error( "problem" )
 				} toMap
 
-		new Compilation( functions, variables, constants, captureTrees, code.toArray )
+		new Compilation( functions, variables, constants, captureTrees, code.to(ArraySeq) )
 	}
 }

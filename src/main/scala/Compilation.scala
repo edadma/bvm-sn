@@ -1,9 +1,11 @@
 package xyz.hyperreal.bvm
 
+import scala.collection.immutable.ArraySeq
+
 
 class Compilation( val functions: Map[String, (Int, Int)], val variables: Map[String, Int],
-									 val constants: Map[String, Any], captureTrees: Array[Node],
-									 private [bvm] val code: Array[VMInst] ) {
+									 val constants: Map[String, Any], captureTrees: ArraySeq[Node],
+									 val code: ArraySeq[VMInst] ) {
 
 	def apply( idx: Int ) = code( idx )
 
