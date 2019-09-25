@@ -11,8 +11,6 @@ import scala.collection.mutable.{ArrayBuffer, Map => MutableMap, Seq => MutableS
 import util.parsing.input.Position
 import xyz.hyperreal.lia.{FunctionMap, Math}
 
-import scala.collection.mutable
-
 
 object VM {
 	private val HALT = -1
@@ -24,7 +22,7 @@ class VM( code: Compilation, captureTrees: ArraySeq[Node], scan: Boolean, anchor
 	import VM._
 
 	var seq: CharSequence = _
-	protected [bvm] val stack = new mutable.Stack[ChoicePoint]
+	protected [bvm] val stack = new ArrayBufferStack[ChoicePoint]
 	protected [bvm] var flags: Int = _
 	protected [bvm] var data: List[Any] = _
 	protected [bvm] var ptr: Int = _
@@ -41,8 +39,6 @@ class VM( code: Compilation, captureTrees: ArraySeq[Node], scan: Boolean, anchor
 	protected [bvm] var bindings = new ArrayBuffer[Any]
 	var trace = false
 	var limit = Int.MaxValue
-
-	protected def discard( elems: Int ) = stack.remove( 0, elems )
 
 	protected def set( bits: Int ) = (flags&bits) > 0
 
@@ -578,7 +574,7 @@ class VM( code: Compilation, captureTrees: ArraySeq[Node], scan: Boolean, anchor
 					case DropInst => pop
 					case CutInst =>
 						pop match {
-							case Cut( size ) => discard( stack.size - size )
+							case Cut( size ) => stack.discard( stack.size - size )
 						}
 					case MarkInst( disp ) =>
 						pushChoice( disp )
@@ -587,10 +583,10 @@ class VM( code: Compilation, captureTrees: ArraySeq[Node], scan: Boolean, anchor
 						pushState
 						mark = stack.size
 					case UnmarkInst =>
-						discard( stack.size - mark )
+						stack.discard( stack.size - mark )
 						state
 					case UnmarkSameDataInst =>
-						discard( stack.size - mark )
+						stack.discard( stack.size - mark )
 						stateSameData
 					case ChangeMarkInst( disp ) =>
 						val ChoicePoint( flags, dat, ptr, _, starts, captures, frm, mrk, ps, rt, action ) = stack(mark - 2)

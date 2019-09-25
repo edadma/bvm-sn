@@ -2,7 +2,6 @@
 package xyz.hyperreal.bvm
 
 import scala.collection.immutable.{ArraySeq, TreeMap}
-import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer, HashMap, HashSet, LinkedHashMap, LinkedHashSet, ListBuffer}
 import scala.util.parsing.input.Position
 
@@ -592,11 +591,11 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 
 	protected def emit( ast: AST, namespaces: List[Namespace] ): Unit = {
 		var markNesting = 0
-		val loops = new mutable.Stack[Label]
+		val loops = new ArrayBufferStack[Label]
 
 		case class Label( construct: String, name: String, nesting: Int, loop: Int, breaks: ArrayBuffer[Int], continues: ArrayBuffer[Int] )
 
-    def search( name: String ) = loops.reverseIterator find (_.name == name)
+    def search( name: String ) = loops find (_.name == name)
 
 		def comment( s: String, pos: Position = null ) =
 			if (comments)
@@ -1008,7 +1007,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 				case BreakExpressionAST( pos, label, expr ) =>
 					val Label( construct, _, nesting, _, breaks, _ ) =
 						if (label isDefined)
-							search( label.get ) match {
+							loops search ((_: Label).name == label.get) match {
 								case None => problem( pos, s"label unknown: $loops" )
 								case Some( l ) => l
 							}
@@ -1031,7 +1030,7 @@ class Compiler( constants: Map[String, Any], sysvars: Map[String, VM => Any],
 				case ContinueExpressionAST( pos, label ) =>
 					val Label( construct, _, nesting, loop, _, continues ) =
 						if (label isDefined)
-              search( label.get ) match {
+							loops search ((_: Label).name == label.get) match {
 								case None => problem( pos, s"label unknown: $loops" )
 								case Some( l ) => l
 							}
