@@ -1,4 +1,4 @@
-package xyz.hyperreal.bvm
+package xyz.hyperreal.bvm_sn
 
 import scala.util.parsing.input.{CharSequenceReader, Position, Positional}
 import util.parsing.combinator.{PackratParsers, RegexParsers}

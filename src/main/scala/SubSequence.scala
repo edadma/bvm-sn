@@ -1,4 +1,4 @@
-package xyz.hyperreal.bvm
+package xyz.hyperreal.bvm_sn
 
 
 class SubSequence( val s: CharSequence, val begin: Int, val end: Int ) extends CharSequence {

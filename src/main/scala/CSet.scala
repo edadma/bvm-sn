@@ -1,4 +1,4 @@
-package xyz.hyperreal.bvm
+package xyz.hyperreal.bvm_sn
 
 import collection.mutable.{ArrayBuffer, HashSet}
 

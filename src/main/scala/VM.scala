@@ -1,15 +1,17 @@
 //@
-package xyz.hyperreal.bvm
+package xyz.hyperreal.bvm_sn
 
 import java.lang.reflect.{Method, Modifier}
 
 import scala.math.ScalaNumber
 import scala.annotation.tailrec
-import collection.mutable.{Growable, Shrinkable}
-import scala.collection.immutable.{ArraySeq, TreeMap}
+import collection.generic.{Growable, Shrinkable}
+import scala.collection.immutable.TreeMap
 import scala.collection.mutable.{ArrayBuffer, Map => MutableMap, Seq => MutableSeq}
 import util.parsing.input.Position
-import xyz.hyperreal.lia.{FunctionMap, Math}
+import xyz.hyperreal.dal.BasicDAL
+
+import scala.collection.mutable
 
 
 object VM {
@@ -18,7 +20,7 @@ object VM {
 	private val VM_STATE = -2
 }
 
-class VM( code: Compilation, captureTrees: ArraySeq[Node], scan: Boolean, anchored: Boolean, val args: Any ) {
+class VM(code: Compilation, captureTrees: mutable.ArraySeq[Node], scan: Boolean, anchored: Boolean, val args: Any ) {
 	import VM._
 
 	var seq: CharSequence = _
@@ -220,7 +222,7 @@ class VM( code: Compilation, captureTrees: ArraySeq[Node], scan: Boolean, anchor
 
 	protected def dot = (clear( Pattern.DOTALL ) && (set( Pattern.UNIX_LINES ) && current != '\n' || clear( Pattern.UNIX_LINES ) && !TERMINATOR_CLASS( current ))) || set( Pattern.DOTALL )
 
-	protected def binaryOperation( lpos: Position, op: Symbol, func: FunctionMap, rpos: Position ): Unit = {
+	protected def binaryOperation( lpos: Position, op: Symbol, rpos: Position ): Unit = {
 		val r = derefp
 		val l = derefp
 
@@ -242,18 +244,18 @@ class VM( code: Compilation, captureTrees: ArraySeq[Node], scan: Boolean, anchor
 							else if (!r.isInstanceOf[Number])
 								problem( rpos, s"not a number: ${display(r)}" )
 							else
-								push( Math(func, l, r) )
+								push( BasicDAL.compute(l.asInstanceOf[Number], op, r.asInstanceOf[Number]) )
 					}
 			case Symbol("==") | Symbol("!=") =>
 				if ((l, r) match {
-					case (_: Number, _: Number) => Math.predicate( func, l, r )
+					case (_: Number, _: Number) => BasicDAL.relate( l.asInstanceOf[Number], op, r.asInstanceOf[Number] )
 					case _ => if (op == Symbol("==")) l == r else l != r
 				})
 					push( r )
 				else
 					fail
 			case Symbol("<") | Symbol(">") | Symbol("<=") | Symbol(">=") | Symbol("div") =>
-				if (Math.predicate( func, l, r ))
+				if (BasicDAL.relate( l.asInstanceOf[Number], op, r.asInstanceOf[Number] ))
 					push( r )
 				else
 					fail
@@ -273,7 +275,7 @@ class VM( code: Compilation, captureTrees: ArraySeq[Node], scan: Boolean, anchor
 				else if (!r.isInstanceOf[Number])
 					problem( rpos, s"not a number: ${display(r)}" )
 				else
-					push( Math(func, l, r) )
+					push( BasicDAL.compute(l.asInstanceOf[Number], op, r.asInstanceOf[Number]) )
 		}
 	}
 
@@ -283,7 +285,7 @@ class VM( code: Compilation, captureTrees: ArraySeq[Node], scan: Boolean, anchor
 				if (argc != 2)
 					problem( apos, s"wrong number of arguments for a section: found $argc, expected 2" )
 
-				binaryOperation( ps.head, op, func, ps.tail.head )
+				binaryOperation( ps.head, op, ps.tail.head )
 			case LeftSectionOperation( lpos, l, op, func ) =>
 				if (argc != 1)
 					problem( apos, s"wrong number of arguments for a left section: found $argc, expected 1" )
@@ -292,13 +294,13 @@ class VM( code: Compilation, captureTrees: ArraySeq[Node], scan: Boolean, anchor
 
 				push( l )
 				push( r )
-				binaryOperation( lpos, op, func, ps.head )
+				binaryOperation( lpos, op, ps.head )
 			case RightSectionOperation( op, func, rpos, r ) =>
 				if (argc != 1)
 					problem( apos, s"wrong number of arguments for a right section: found $argc, expected 1" )
 
 				push( r )
-				binaryOperation( ps.head, op, func, rpos )
+				binaryOperation( ps.head, op, rpos )
 			case FunctionReference( entry, name, arity, locals ) =>
 				if (argc != arity)
 					problem( apos, s"wrong number of arguments for '$name': found $argc, expected $arity" )
@@ -316,7 +318,7 @@ class VM( code: Compilation, captureTrees: ArraySeq[Node], scan: Boolean, anchor
 				for (i <- c.arity - 1 to 0 by -1)
 					args(i) = derefp
 
-				push( new Record(c.name, ArraySeq.from(args), c.symbolMap, c.stringMap) )
+				push( new Record(c.name, args.to[mutable.ArraySeq], c.symbolMap, c.stringMap) )
 			case r: Record =>
 				if (argc != 1)
 					problem( apos, "a function application with one argument was expected" )
@@ -713,7 +715,7 @@ class VM( code: Compilation, captureTrees: ArraySeq[Node], scan: Boolean, anchor
 						for (i <- arity - 1 to 0 by -1)
 							a(i) = derefp
 
-						push( new Tuple(ArraySeq.from(a)) )
+						push( new Tuple(a.to[mutable.ArraySeq]) )
 					case TupleElementInst( n ) => push( derefp.asInstanceOf[TupleLike].element(n) )
 					case DupInst => push( top )
 					case DupUnderInst =>
@@ -813,13 +815,13 @@ class VM( code: Compilation, captureTrees: ArraySeq[Node], scan: Boolean, anchor
 											s.asInstanceOf[Shrinkable[Any]] -= rhs(i)
 											res = s
 										case (Symbol("--"), s: Shrinkable[_]) =>
-											s.asInstanceOf[Shrinkable[Any]] --= rhs(i).asInstanceOf[IterableOnce[Any]]
+											s.asInstanceOf[Shrinkable[Any]] --= rhs(i).asInstanceOf[TraversableOnce[Any]]
 											res = s
 										case (Symbol("+"), g: Growable[_]) =>
 											g.asInstanceOf[Growable[Any]] += rhs(i)
 											res = g
 										case (Symbol("++"), g: Growable[_]) =>
-											g.asInstanceOf[Growable[Any]] ++= rhs(i).asInstanceOf[IterableOnce[Any]]
+											g.asInstanceOf[Growable[Any]] ++= rhs(i).asInstanceOf[TraversableOnce[Any]]
 											res = g
 										case _ =>
 											lhs(i) match {

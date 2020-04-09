@@ -3,13 +3,14 @@ package xyz.hyperreal
 import java.io.ByteArrayOutputStream
 
 import scala.util.parsing.input.Position
-import xyz.hyperreal.bvm.Pattern._
-import xyz.hyperreal.lia.Math
+import xyz.hyperreal.bvm_sn.Pattern._
+import xyz.hyperreal.dal
+import xyz.hyperreal.dal.BasicDAL
 
-import scala.collection.immutable.ArraySeq
+import scala.collection.mutable.ArraySeq
 
 
-package object bvm {
+package object bvm_sn {
 
 	type NativeFunction = (_, _, _, _) => _
 	type cset = Char => Boolean
@@ -101,7 +102,7 @@ package object bvm {
 		a match {
 			case a: Array[_] => a map display mkString ("Array(", ", ", ")")
 			case l: List[_] => l map displayQuoted mkString ("[", ", ", "]")
-			case s: LazyList[_] =>
+			case s: Stream[_] =>
 				val howMany = 100
 				val bunch = s take (howMany + 1)
 
@@ -123,30 +124,30 @@ package object bvm {
 			case _ => String.valueOf( a )
 		}
 
-	val NUMERIC =
-		new Numeric[Any] {
-			def parseString( str: String ): Option[Any] = sys.error( "shouldn't call Numeric.parseString()" )
-
-			def compare( x: Any, y: Any ): Int = naturalCompare( x, y )
-
-			def fromInt( x: Int ) = Integer.valueOf( x )
-
-			def minus( x: Any, y: Any ) = Math( Symbol("-"), x, y )
-
-			def negate( x: Any ) = Math( Symbol("-"), x )
-
-			def plus( x: Any, y: Any ) = Math( Symbol("+"), x, y )
-
-			def times( x: Any, y: Any ) = Math( Symbol("*"), x, y )
-
-			def toDouble( x: Any ) = x.asInstanceOf[Number].doubleValue
-
-			def toFloat( x: Any ) = x.asInstanceOf[Number].floatValue
-
-			def toInt( x: Any ) = x.asInstanceOf[Number].intValue
-
-			def toLong( x: Any ) = x.asInstanceOf[Number].longValue
-		}
+//	val NUMERIC =
+//		new Numeric[Any] {
+//			def parseString( str: String ): Option[Any] = sys.error( "shouldn't call Numeric.parseString()" )
+//
+//			def compare( x: Any, y: Any ): Int = naturalCompare( x, y )
+//
+//			def fromInt( x: Int ) = Integer.valueOf( x )
+//
+//			def minus( x: Any, y: Any ) = BasicDAL.compute( dal.Num(x.asInstanceOf[Number]), dal.Sub, dal.Num(y.asInstanceOf[Number]) )
+//
+//			def negate( x: Any ) = Math( Symbol("-"), x )
+//
+//			def plus( x: Any, y: Any ) = Math( Symbol("+"), x, y )
+//
+//			def times( x: Any, y: Any ) = Math( Symbol("*"), x, y )
+//
+//			def toDouble( x: Any ) = x.asInstanceOf[Number].doubleValue
+//
+//			def toFloat( x: Any ) = x.asInstanceOf[Number].floatValue
+//
+//			def toInt( x: Any ) = x.asInstanceOf[Number].intValue
+//
+//			def toLong( x: Any ) = x.asInstanceOf[Number].longValue
+//		}
 
 	val ORDERING =
 		new Ordering[Any]
@@ -158,9 +159,9 @@ package object bvm {
 		(x, y) match
 		{
 			case (a: Number, b: Number) =>
-				if (Math( Symbol("<"), a, b ).asInstanceOf[Boolean])
+				if (BasicDAL.relate( dal.Num(a.asInstanceOf[Number]), dal.Lt, dal.Num(b.asInstanceOf[Number]) ))
 					-1
-				else if (Math( Symbol(">"), a, b ).asInstanceOf[Boolean])
+				else if (BasicDAL.relate( dal.Num(a.asInstanceOf[Number]), dal.Gt, dal.Num(b.asInstanceOf[Number]) ))
 					1
 				else
 					0
